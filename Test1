@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Independencia Financiera</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding and border in the element's total width and height */
+        }
+        button {
+            background-color: #007bff; /* Azul */
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #0056b3; /* Azul más oscuro al pasar el ratón */
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #e9e9e9;
+            border-radius: 4px;
+            border-left: 5px solid #007bff;
+        }
+        .result p {
+            margin: 5px 0;
+        }
+        .warning {
+            color: #d9534f;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        .info {
+            font-size: 0.9em;
+            color: #555;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+        }
+         #chartContainer {
+             margin-top: 20px;
+             position: relative;
+             height: 350px; /* Increased height for better visibility of multiple lines */
+             width: 100%;
+         }
+         /* Table styles */
+         #tableContainer table {
+             width: 100%;
+             border-collapse: collapse;
+             margin-top: 15px;
+             font-size: 0.9em;
+         }
+         #tableContainer th, #tableContainer td {
+             border: 1px solid #ddd;
+             padding: 8px;
+             text-align: center; /* Centered text for headers and data cells */
+         }
+         #tableContainer th {
+             background-color: #f2f2f2;
+             font-weight: bold;
+         }
+         #tableContainer tbody tr:nth-child(even) {
+             background-color: #f9f9f9;
+         }
+         #tableContainer tbody tr:hover {
+             background-color: #e9e9e9;
+         }
+         .highlight-row {
+             font-weight: bold;
+             background-color: #d4edda !important; /* Light green background */
+         }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="text-2xl font-bold mb-4 text-center">Calculadora de Independencia Financiera</h2>
+
+    <div class="info">
+        <p>Esta herramienta estima el tiempo para alcanzar la independencia financiera basándose en tu objetivo de vivir de dividendos, considerando inflación, crecimiento de ahorro y rendimiento de la cartera.</p>
+        <p>El cálculo asume que necesitas una cantidad bruta de dividendos que, después de impuestos (estimados), te deje el objetivo neto mensual, y que tu cartera genera una rentabilidad por dividendo constante sobre su valor nominal.</p>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="initialPortfolioValue">Valor Actual de Cartera (€):</label>
+            <input type="number" id="initialPortfolioValue" value="115433.95" min="0">
+        </div>
+        <div>
+            <label for="initialAnnualSavings">Ahorro Anual Inicial (€):</label>
+            <input type="number" id="initialAnnualSavings" value="60000" min="0">
+        </div>
+        <div>
+            <label for="savingsIncrease">Aumento Anual del Ahorro (%):</label>
+            <input type="number" id="savingsIncrease" value="3" min="0">
+        </div>
+        <div>
+            <label for="targetNetMonthlyIncome">Objetivo Ingreso Neto Mensual (€):</label>
+            <input type="number" id="targetNetMonthlyIncome" value="3000" min="0">
+        </div>
+        <div>
+            <label for="estimatedTaxRate">Tasa Fiscal Estimada Dividendos (%):</label>
+            <input type="number" id="estimatedTaxRate" value="25" min="0" max="100">
+        </div>
+        <div>
+            <label for="realGrowthRate">Tasa Crecimiento Real Cartera (%):</label>
+            <input type="number" id="realGrowthRate" value="6" min="-10">
+        </div>
+        <div>
+            <label for="inflationRate">Tasa Inflación Media Anual (%):</label>
+            <input type="number" id="inflationRate" value="2.5" min="0">
+        </div>
+         <div>
+            <label for="nominalDividendYield">Rentabilidad Dividendo Nominal Cartera (%):</label>
+            <input type="number" id="nominalDividendYield" value="4.03" min="0">
+        </div>
+    </div>
+
+    <button onclick="calculateFI()">Calcular Tiempo a IF</button>
+
+    <div class="result" id="resultArea" style="display:none;">
+        <p id="resultText"></p>
+        <p id="calculatedParams"></p>
+        <div id="chartContainer" style="margin-top: 20px; position: relative; height: 350px; width: 100%;">
+            <canvas id="portfolioChart"></canvas>
+        </div>
+         <div id="tableContainer" style="margin-top: 20px; display: none;">
+            <h3 class="text-xl font-bold mb-2">Detalle Anual de la Simulación</h3>
+            <table class="w-full border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2 text-center">Año</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Ahorro Aportado (€)</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Patrimonio Fin Año (€)</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Dividendos Estimados (€)</th>
+                        <th class="border border-gray-300 px-4 py-2 text-center">Dividendo Neto Mensual (€)</th> <th class="border border-gray-300 px-4 py-2 text-center">Objetivo Dividendos Brutos (€)</th>
+                    </tr>
+                </thead>
+                <tbody id="fiTableBody">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="warning" id="warningArea" style="display:none;"></div>
+
+</div>
+
+<script>
+    // Variable to hold the chart instance
+    let myPortfolioChart = null;
+
+    function calculateFI() {
+        // Get input values
+        const initialPortfolioValue = parseFloat(document.getElementById('initialPortfolioValue').value);
+        const initialAnnualSavings = parseFloat(document.getElementById('initialAnnualSavings').value);
+        const savingsIncrease = parseFloat(document.getElementById('savingsIncrease').value) / 100; // Convert to decimal
+        const targetNetMonthlyIncome = parseFloat(document.getElementById('targetNetMonthlyIncome').value);
+        const estimatedTaxRate = parseFloat(document.getElementById('estimatedTaxRate').value) / 100; // Convert to decimal
+        const realGrowthRate = parseFloat(document.getElementById('realGrowthRate').value) / 100; // Convert to decimal
+        const inflationRate = parseFloat(document.getElementById('inflationRate').value) / 100; // Convert to decimal
+        const nominalDividendYield = parseFloat(document.getElementById('nominalDividendYield').value) / 100; // Convert to decimal
+
+        // Validate inputs
+        if (isNaN(initialPortfolioValue) || isNaN(initialAnnualSavings) || isNaN(savingsIncrease) || isNaN(targetNetMonthlyIncome) || isNaN(estimatedTaxRate) || isNaN(realGrowthRate) || isNaN(inflationRate) || isNaN(nominalDividendYield)) {
+            displayWarning("Por favor, introduce valores numéricos válidos en todos los campos.");
+            return;
+        }
+         if (estimatedTaxRate < 0 || estimatedTaxRate >= 1) {
+             displayWarning("La tasa fiscal estimada debe estar entre 0 y 100 (excluyendo 100).");
+             return;
+         }
+         if (nominalDividendYield < 0) {
+             displayWarning("La rentabilidad por dividendo no puede ser negativa.");
+             return;
+         }
+         if (targetNetMonthlyIncome <= 0) {
+              displayWarning("El objetivo de ingreso neto mensual debe ser mayor que cero.");
+              return;
+         }
+
+
+        // Calculate initial gross target annual income
+        if ((1 - estimatedTaxRate) <= 0) {
+             displayWarning("La tasa fiscal es demasiado alta. No se puede calcular el objetivo bruto.");
+             return;
+        }
+        const initialGrossTargetAnnual = (targetNetMonthlyIncome * 12) / (1 - estimatedTaxRate);
+
+        // Calculate nominal growth rate
+        const nominalGrowthRate = (1 + realGrowthRate) * (1 + inflationRate) - 1;
+
+        // Simulation loop
+        let currentValue = initialPortfolioValue;
+        let year = 0;
+        const maxYears = 150; // Prevent infinite loop
+
+        // Data for the chart and table
+        let yearsData = [0];
+        let portfolioValuesData = [initialPortfolioValue];
+        let estimatedDividendsData = [initialPortfolioValue * nominalDividendYield];
+        let targetDividendsData = [initialGrossTargetAnnual * Math.pow(1 + inflationRate, 0)];
+
+        // Data for the table (starting with Year 0)
+        let simulationData = [{
+            year: 0,
+            savingsContributed: 0, // Savings contributed IN Year 0 is 0
+            portfolioValue: initialPortfolioValue,
+            estimatedDividends: initialPortfolioValue * nominalDividendYield,
+            // Calculate initial net monthly dividend for Year 0
+            estimatedNetMonthlyDividends: (initialPortfolioValue * nominalDividendYield) * (1 - estimatedTaxRate) / 12, // Added this
+            targetDividends: initialGrossTargetAnnual * Math.pow(1 + inflationRate, 0)
+        }];
+
+
+        while (year < maxYears) {
+            // Calculate savings for the NEXT year (Year N + 1)
+            const savingsForNextYear = initialAnnualSavings * Math.pow(1 + savingsIncrease, year); // This is savings for Year N+1
+
+            // Calculate portfolio value *before* growth for the next year
+            let valueBeforeGrowthNextYear = currentValue + savingsForNextYear; // Savings added here
+
+            // Calculate portfolio value *at the end* of the next year
+            let valueAtEndOfNextYear = valueBeforeGrowthNextYear * (1 + nominalGrowthRate);
+
+
+            // Calculate required gross dividend for the *next* year (Year N + 1)
+            const requiredGrossDivNextYearTarget = initialGrossTargetAnnual * Math.pow(1 + inflationRate, year + 1);
+
+            // Calculate estimated dividend from the portfolio value *at the end* of the next year
+            const estimatedDivNextYearGenerated = valueAtEndOfNextYear * nominalDividendYield;
+
+            // Calculate estimated NET monthly dividend for the *next* year (Year N + 1)
+            const estimatedNetAnnualDividends = estimatedDivNextYearGenerated * (1 - estimatedTaxRate); // Added this
+            const estimatedNetMonthlyDividends = estimatedNetAnnualDividends / 12; // Added this
+
+            // Store data for the chart (for Year N + 1)
+            yearsData.push(year + 1);
+            portfolioValuesData.push(valueAtEndOfNextYear);
+            estimatedDividendsData.push(estimatedDivNextYearGenerated);
+            targetDividendsData.push(requiredGrossDivNextYearTarget);
+
+             // Store data for the table (for Year N + 1)
+            simulationData.push({
+                year: year + 1,
+                savingsContributed: savingsForNextYear, // Store savings for Year N+1
+                portfolioValue: valueAtEndOfNextYear,
+                estimatedDividends: estimatedDivNextYearGenerated,
+                estimatedNetMonthlyDividends: estimatedNetMonthlyDividends, // Added this
+                targetDividends: requiredGrossDivNextYearTarget
+            });
+
+
+             // Check FI condition at the END of the NEXT year
+            if (estimatedDivNextYearGenerated >= requiredGrossDivNextYearTarget) {
+                displayResult(`¡Felicidades! Tiempo estimado para alcanzar la independencia financiera:`, `${year + 1} años.`);
+                displayCalculatedParams(initialPortfolioValue, initialAnnualSavings, savingsIncrease, targetNetMonthlyIncome, estimatedTaxRate, realGrowthRate, inflationRate, nominalDividendYield, initialGrossTargetAnnual, nominalGrowthRate);
+                renderChart(yearsData, portfolioValuesData, estimatedDividendsData, targetDividendsData); // Render chart on success
+                renderTable(simulationData); // Render table on success
+                return;
+            }
+
+            // Update currentValue for the next iteration
+            currentValue = valueAtEndOfNextYear;
+
+            // Increment year
+            year++;
+        }
+
+        // If loop finishes without reaching FI
+        displayResult(`Estimación:`, `Se necesitarían más de ${maxYears} años para alcanzar la independencia financiera con estos parámetros, o podría no ser posible.`);
+         displayCalculatedParams(initialPortfolioValue, initialAnnualSavings, savingsIncrease, targetNetMonthlyIncome, estimatedTaxRate, realGrowthRate, inflationRate, nominalDividendYield, initialGrossTargetAnnual, nominalGrowthRate);
+         renderChart(yearsData, portfolioValuesData, estimatedDividendsData, targetDividendsData); // Render chart even if FI not reached within maxYears
+         renderTable(simulationData); // Render table even if FI not reached within maxYears
+    }
+
+    function displayResult(title, text) {
+        document.getElementById('resultArea').style.display = 'block';
+        document.getElementById('warningArea').style.display = 'none';
+        document.getElementById('resultText').innerHTML = `<strong>${title}</strong> ${text}`;
+        document.getElementById('chartContainer').style.display = 'block'; // Show chart container
+         // tableContainer visibility handled in renderTable
+    }
+
+     function displayCalculatedParams(initialPortfolioValue, initialAnnualSavings, savingsIncrease, targetNetMonthlyIncome, estimatedTaxRate, realGrowthRate, inflationRate, nominalDividendYield, initialGrossTargetAnnual, nominalGrowthRate) {
+         const paramsHtml = `
+            <p><strong>Parámetros usados para el cálculo:</strong></p>
+            <p>Valor Inicial Cartera: €${initialPortfolioValue.toFixed(2)}</p>
+            <p>Ahorro Anual Inicial: €${initialAnnualSavings.toFixed(2)}</p>
+            <p>Aumento Ahorro Anual: ${(savingsIncrease * 100).toFixed(2)}%</p>
+            <p>Objetivo Neto Mensual: €${targetNetMonthlyIncome.toFixed(2)}</p>
+            <p>Tasa Fiscal Estimada: ${(estimatedTaxRate * 100).toFixed(2)}%</p>
+            <p>Tasa Crecimiento Real Cartera: ${(realGrowthRate * 100).toFixed(2)}%</p>
+            <p>Tasa Inflación: ${(inflationRate * 100).toFixed(2)}%</p>
+            <p>Rentabilidad Dividendo Nominal Cartera: ${(nominalDividendYield * 100).toFixed(2)}%</p>
+            <p>Objetivo Bruto Anual Inicial (calculado): €${initialGrossTargetAnnual.toFixed(2)}</p>
+             <p>Tasa Crecimiento Nominal Total (calculada): ${(nominalGrowthRate * 100).toFixed(2)}%</p>
+         `;
+         document.getElementById('calculatedParams').innerHTML = paramsHtml;
+     }
+
+
+    function displayWarning(text) {
+        document.getElementById('resultArea').style.display = 'none';
+        document.getElementById('warningArea').style.display = 'block';
+        document.getElementById('warningArea').innerText = text;
+        document.getElementById('calculatedParams').innerHTML = ''; // Clear previous params
+        document.getElementById('chartContainer').style.display = 'none'; // Hide chart container on warning
+        document.getElementById('tableContainer').style.display = 'none'; // Hide table container on warning
+         if (myPortfolioChart) { // Destroy chart on warning
+            myPortfolioChart.destroy();
+            myPortfolioChart = null;
+        }
+    }
+
+    function renderChart(years, values, estimatedDividends, targetDividends) {
+        const ctx = document.getElementById('portfolioChart').getContext('2d');
+
+        // Destroy existing chart if it exists
+        if (myPortfolioChart) {
+            myPortfolioChart.destroy();
+        }
+
+        // Define colors for lines
+        const portfolioColor = 'rgb(100, 149, 237)'; // Soft blue
+        const dividendColor = 'rgb(255, 140, 0)'; // DarkOrange (soft red/orange)
+
+
+        myPortfolioChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: years,
+                datasets: [
+                    {
+                        label: 'Patrimonio Acumulado (€)',
+                        data: values,
+                        borderColor: portfolioColor, // Soft blue
+                        backgroundColor: 'rgba(100, 149, 237, 0.2)',
+                        tension: 0.1,
+                        fill: false,
+                        yAxisID: 'y' // Assign to primary Y axis (left)
+                    },
+                     {
+                        label: 'Dividendos Anuales Estimados (€)',
+                        data: estimatedDividends,
+                        borderColor: dividendColor, // DarkOrange for estimated dividends
+                        backgroundColor: 'rgba(255, 140, 0, 0.2)',
+                        tension: 0.1,
+                        fill: false,
+                         yAxisID: 'y1' // Assign to secondary Y axis (right)
+                    },
+                     {
+                        label: 'Objetivo Dividendos Brutos Anuales (€)',
+                        data: targetDividends,
+                        borderColor: dividendColor, // DarkOrange for target dividends
+                        backgroundColor: 'rgba(255, 140, 0, 0.2)',
+                        tension: 0.1,
+                        fill: false,
+                        borderDash: [5, 5], // Dashed line for target
+                         yAxisID: 'y1' // Assign to secondary Y axis (right)
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Años'
+                        },
+                         ticks: {
+                            stepSize: 1
+                        },
+                         grid: {
+                             color: '#ccc' // Softer grid lines
+                         }
+                    },
+                    y: { // Primary Y axis (Left) for Portfolio Value
+                        type: 'linear',
+                        position: 'left',
+                         title: {
+                            display: true,
+                            text: 'Patrimonio Acumulado (€)'
+                        },
+                        ticks: {
+                            callback: function(value, index, values) {
+                                return '€' + value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                            }
+                        },
+                         grid: {
+                             color: '#ccc' // Softer grid lines
+                         }
+                    },
+                     y1: { // Secondary Y axis (Right) for Dividends
+                        type: 'linear',
+                        position: 'right',
+                         title: {
+                            display: true,
+                            text: 'Dividendos Anuales (€)'
+                        },
+                        ticks: {
+                             // Add € sign to y-axis labels and format as currency
+                            callback: function(value, index, values) {
+                                return '€' + value.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+                            }
+                        },
+                         grid: {
+                             drawOnChartArea: false // Only draw grid lines for the left axis
+                         }
+                    }
+                },
+                plugins: {
+                     legend: {
+                         labels: {
+                             // Default color matching should work here
+                         }
+                     },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                 let label = context.dataset.label || '';
+                                 if (label) {
+                                     label += ': ';
+                                 }
+                                 label += '€' + context.raw.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                 return label;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+         document.getElementById('chartContainer').style.display = 'block'; // Ensure container is visible
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById('fiTableBody');
+        // Clear existing rows
+        tbody.innerHTML = '';
+
+        let fiYear = -1;
+        // Find the first year FI is reached to highlight it
+        for(let i = 1; i < data.length; i++) { // Start from year 1
+            if (data[i].estimatedDividends >= data[i].targetDividends) {
+                fiYear = data[i].year;
+                break; // Found the first year
+            }
+        }
+
+
+        data.forEach(rowData => {
+            const row = tbody.insertRow();
+            row.insertCell().innerText = rowData.year;
+            row.insertCell().innerText = '€' + rowData.savingsContributed.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            row.insertCell().innerText = '€' + rowData.portfolioValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            row.insertCell().innerText = '€' + rowData.estimatedDividends.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            row.insertCell().innerText = '€' + rowData.estimatedNetMonthlyDividends.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); // Add Net Monthly Dividend cell
+            row.insertCell().innerText = '€' + rowData.targetDividends.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+
+            // Highlight the FI year row
+            if (rowData.year === fiYear) {
+                 row.classList.add('highlight-row');
+            }
+        });
+
+        document.getElementById('tableContainer').style.display = 'block'; // Make table container visible
+    }
+
+
+    // Initial calculation on page load (optional, but good for showing default state)
+    // calculateFI(); // Let's not run on load, wait for user click
+
+</script>
+
+</body>
+</html>
