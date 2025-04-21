@@ -31,6 +31,7 @@
             white-space: nowrap;
             z-index: 10;
             margin-bottom: 5px;
+            text-align: left; /* Align text left in details */
         }
         .calendar-day:hover .details {
             display: block;
@@ -55,6 +56,19 @@
         }
         .day-icon {
              font-size: 1.2rem; /* Adjust icon size */
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
@@ -101,12 +115,14 @@
                 <div></div><div></div><div></div>
                 <div class="calendar-day p-2 rounded hover:bg-green-200">
                     <div class="day-number">1</div>
-                     <div class="day-title">Llegada/SANParks/Vuelo</div>
-                    <div class="day-icon">🇿🇦🏕️✈️</div>
+                     <div class="day-title">Llegada/SANParks/Coche/Vuelo</div>
+                    <div class="day-icon">🇿🇦🏕️🚗✈️</div>
                     <div class="details">
                         Llegada a Johannesburgo (08:35)<br>
                         SANParks: Orpen Rest Camp<br>
                         Reserva: R9710255<br>
+                        Coche Alquiler:<br>
+                        Recogida JNB (08:45)<br>
                         Vuelo Lufthansa:<br>
                         Johannesburgo a Frankfurt (10:15 - 19:00)<br>
                         Frankfurt a Múnich (20:00 - 21:05)
@@ -114,48 +130,54 @@
                 </div>
                 <div class="calendar-day p-2 rounded hover:bg-green-200">
                     <div class="day-number">2</div>
-                     <div class="day-title">SANParks</div>
-                    <div class="day-icon">🏕️</div>
+                     <div class="day-title">SANParks/Coche</div>
+                    <div class="day-icon">🏕️🚗</div>
                     <div class="details">
                         SANParks: Satara Rest Camp<br>
-                        Reserva: R9711890
+                        Reserva: R9711890<br>
+                        Coche Alquiler
                     </div>
                 </div>
                  <div class="calendar-day p-2 rounded hover:bg-green-200">
                     <div class="day-number">3</div>
-                     <div class="day-title">SANParks</div>
-                    <div class="day-icon">🏕️</div>
+                     <div class="day-title">SANParks/Coche</div>
+                    <div class="day-icon">🏕️🚗</div>
                     <div class="details">
                         SANParks: Malelane Rest Camp<br>
-                        Reserva: R9711890
+                        Reserva: R9711890<br>
+                        Coche Alquiler
                     </div>
                 </div>
                  <div class="calendar-day p-2 rounded hover:bg-green-200">
                      <div class="day-number">4</div>
-                     <div class="day-title">SANParks</div>
-                    <div class="day-icon">🏕️</div>
+                     <div class="day-title">SANParks/Coche</div>
+                    <div class="day-icon">🏕️🚗</div>
                     <div class="details">
                         SANParks: Berg-en-Dal Rest Camp<br>
-                        Reserva: R9711882
+                        Reserva: R9711882<br>
+                        Coche Alquiler
                     </div>
                 </div>
                  <div class="calendar-day p-2 rounded hover:bg-green-200">
                      <div class="day-number">5</div>
-                     <div class="day-title">SANParks</div>
-                    <div class="day-icon">🏕️</div>
+                     <div class="day-title">SANParks/Coche</div>
+                    <div class="day-icon">🏕️🚗</div>
                     <div class="details">
                         SANParks: Berg-en-Dal Rest Camp<br>
-                        Reserva: R9711882
+                        Reserva: R9711882<br>
+                        Coche Alquiler
                     </div>
                 </div>
                  <div class="calendar-day p-2 rounded hover:bg-blue-200">
                      <div class="day-number">6</div>
-                     <div class="day-title">Vuelo</div>
-                    <div class="day-icon">✈️</div>
+                     <div class="day-title">Vuelo/Coche</div>
+                    <div class="day-icon">✈️🚗</div>
                     <div class="details">
                         Vuelo Flysafair:<br>
                         Kruger Mpumalanga Int. a Ciudad del Cabo<br>
-                        (12:05 - 14:50)
+                        (12:05 - 14:50)<br>
+                        Coche Alquiler:<br>
+                        Devolución MQP (11:00)
                     </div>
                 </div>
                  <div class="calendar-day p-2 rounded">7</div>
@@ -195,6 +217,77 @@
             </div>
 
              </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-xl mt-8">
+            <h2 class="text-xl font-semibold mb-4">Costes del Viaje (Estimado en Euros)</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Fechas</th>
+                        <th>Coste (EUR)</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Coche de Alquiler (Sixt)</td>
+                        <td>01/05/2025 - 06/05/2025</td>
+                        <td>N/A</td>
+                        <td>Coste no disponible en el PDF.</td>
+                    </tr>
+                    <tr>
+                        <td>Vuelos Lufthansa (MUC-JNB)</td>
+                        <td>30/04/2025 - 01/05/2025</td>
+                        <td>N/A</td>
+                        <td>Coste no disponible en el resumen del correo.</td>
+                    </tr>
+                     <tr>
+                        <td>Vuelos Flysafair (KMI-CPT)</td>
+                        <td>06/05/2025</td>
+                        <td>N/A</td>
+                        <td>Coste no disponible en el resumen del correo.</td>
+                    </tr>
+                     <tr>
+                        <td>Vuelos Flysafair (PLZ-JNB)</td>
+                        <td>16/05/2025</td>
+                        <td>N/A</td>
+                        <td>Coste no disponible en el resumen del correo.</td>
+                    </tr>
+                    <tr>
+                        <td>SANParks (Orpen)</td>
+                        <td>01/05/2025 - 02/05/2025</td>
+                        <td>N/A</td>
+                        <td>Coste no especificado claramente en el contenido del PDF.</td>
+                    </tr>
+                     <tr>
+                        <td>SANParks (Satara)</td>
+                        <td>02/05/2025 - 03/05/2025</td>
+                        <td>N/A</td>
+                        <td>Coste no especificado claramente en el contenido del PDF.</td>
+                    </tr>
+                     <tr>
+                        <td>SANParks (Malelane)</td>
+                        <td>03/05/2025 - 04/05/2025</td>
+                        <td>N/A</td>
+                        <td>Coste no especificado claramente en el contenido del PDF.</td>
+                    </tr>
+                     <tr>
+                        <td>SANParks (Berg-en-Dal)</td>
+                        <td>04/05/2025 - 06/05/2025</td>
+                        <td>N/A</td>
+                        <td>Coste no especificado claramente en el contenido del PDF.</td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="2" class="text-right font-bold">Total Estimado:</td>
+                        <td>N/A</td>
+                        <td>No se pudieron obtener todos los costes.</td>
+                    </tr>
+                </tbody>
+            </table>
+             <p class="mt-4 text-sm text-gray-600">Nota: Los costes no pudieron ser extraídos automáticamente de los correos y PDFs. Por favor, consulta tus documentos originales para obtener los precios exactos.</p>
+        </div>
     </div>
 
 </body>
